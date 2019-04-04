@@ -1,0 +1,84 @@
+// context encoder sentence + coherence
+{
+  "dataset_reader": {
+    "type": "el_reader",
+    "resource_path": "/home/junkyul/conda/neural-el_resources",
+    "word_drop_sentence" : 0.4,
+    "word_drop_coherence": 0.6
+  },
+  "vocabulary": {
+    "directory_path": "/home/junkyul/conda/allenel/experiments/vocab"
+  },
+//
+//  "train_data_path": "/home/junkyul/conda/allenel/tests/fixtures/train.mens.0",
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
+  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
+  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
+//
+  "evaluate_on_test": true,
+  "model": {
+    "type": "el_model",
+    "device": "cuda",
+    "use_coherence": true,
+    "use_type": false,
+    "left_seq2vec": {
+      "type": "lstm",
+        "bidirectional": false,
+        "input_size": 300,
+        "hidden_size": 100,
+        "num_layers": 1
+    },
+    "right_seq2vec": {
+      "type": "lstm",
+        "bidirectional": false,
+        "input_size": 300,
+        "hidden_size": 100,
+        "num_layers": 1
+    },
+    "ff_seq2vecs" : {
+      "input_dim": 200,
+      "num_layers": 1,
+      "hidden_dims": 100,   // if use coherence hidden dims is 100
+      "activations": "relu",
+      "dropout": 0.4
+    },
+    "ff_context": {
+      "input_dim": 200,
+      "num_layers": 1,
+      "hidden_dims": 200,   
+      "activations": "relu",
+      "dropout": 0.4
+    }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 1000,
+//    "max_instances_in_memory": 1000,
+//    "cache_instances": true
+  },
+
+  "trainer": {
+    "num_epochs": 10,
+    "cuda_device": 0,    // model device cpu -> -1, gpu -> 0
+//    "gradient_norm": 1.0,
+//    "grad_clipping": 5.0, if norm fails
+//    "validation_metric": "+accuracy",
+    "optimizer": {
+      "type": "adam",
+//      "type": "dense_sparse_adam",
+      "lr": 0.005
+    },
+    "patience": 10
+  }
+}
+
+//The available optimizers are
+//
+//“adadelta”
+//“adagrad”
+//“adam”
+//“sparse_adam”
+//“sgd”
+//“rmsprop
+//“adamax
+//“averaged_sgd
