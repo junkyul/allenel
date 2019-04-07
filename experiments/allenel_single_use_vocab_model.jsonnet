@@ -1,11 +1,11 @@
-local n_types = 114;            # len of types vocab
+//local n_types = 114;            # len of types vocab
 //local n_coherences = 3753616;   # len of coherences vocab
 //local n_entities = 408627;      # len of wid vocab
 {
   "dataset_reader": {
     "type": "el_reader",
     "resource_path": "/home/junkyul/conda/neural-el_resources",
-    "n_types": n_types,
+//    "n_types": n_types,
 //    "n_coherences": n_coherences
   },
 //
@@ -16,8 +16,8 @@ local n_types = 114;            # len of types vocab
 //  },
 //
 //
-//  "train_data_path": "/home/junkyul/conda/neural-el_train/train_short.mens",
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train_short.mens",
+//  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
   "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev_short.txt",
   "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test_short.txt",
   "evaluate_on_test": true,

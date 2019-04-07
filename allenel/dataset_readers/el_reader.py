@@ -21,8 +21,7 @@ class EnityLinknigDatasetReader(DatasetReader):
     crosswiki: Dict[str, tuple] = {}
 
     def __init__(self,
-                 resource_path: str,
-                 n_types: int,
+                 resource_path: str = "",
                  ) -> None:
         super().__init__(lazy=False)
         self.reource_path = resource_path
@@ -35,12 +34,16 @@ class EnityLinknigDatasetReader(DatasetReader):
         self.wid_tokenizer = WordTokenizer(word_splitter=JustSpacesWordSplitter())
         self.wid_indexers = {"tokens": SingleIdTokenIndexer(namespace="wids")}
 
-        self.n_types = n_types
+        self.type_tokenizer = WordTokenizer(word_splitter=JustSpacesWordSplitter())
+        self.type_indexers = {"tokens": SingleIdTokenIndexer(namespace="types")}
+
+        # self.n_types = n_types
 
         import pickle, os
-        logger.info("start reading crosswikis.pruned.pkl")
-        EnityLinknigDatasetReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
-        logger.info("end reading crosswikis.pruned.pkl")
+        if resource_path:
+            logger.info("start reading crosswikis.pruned.pkl")
+            EnityLinknigDatasetReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
+            logger.info("end reading crosswikis.pruned.pkl")
 
     @overrides
     def _read(self, file_path):
@@ -94,9 +97,10 @@ class EnityLinknigDatasetReader(DatasetReader):
         # wid_field = LabelField(label=wiki_id, label_namespace='wid', skip_indexing=False)
         # title_field = LabelField(label=wiki_title, label_namespace='title', skip_indexing=False)
 
-        type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
-                                     skip_indexing=False, num_labels=self.n_types)
-
+        # type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
+        #                              skip_indexing=False, num_labels=self.n_types)
+        types_tokenized = self.type_tokenizer.tokenize(free_types)
+        types_field = TextField(types_tokenized, self.type_indexers)
 
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
         coherences_field = TextField(coherence_tokenized, self.coherence_indexers)
@@ -120,7 +124,7 @@ class EnityLinknigDatasetReader(DatasetReader):
         fields = {
             "wid": wid_field,                                   # label -> meta
             "title": title_field,                               # label -> meta
-            "types": type_field,                                # multi label for one hot
+            "types": types_field,                                # multi label for one hot
             "sentence": sentence_field,                         # text
             "sentence_left": sentence_left_field,               # text
             "sentence_right": sentence_right_field,             # text
