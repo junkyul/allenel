@@ -7,7 +7,6 @@
     "extend" : true
   },
   "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
-//
   "model": {
     "type": "el_model",
     "sentence_embedder": {
@@ -74,7 +73,7 @@
     "batch_size": 1000
   },
   "trainer": {
-    "num_epochs": 50,
+    "num_epochs": 0,
     "cuda_device": 0,    // model device cpu -> -1, gpu -> 0
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
