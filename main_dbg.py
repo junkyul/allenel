@@ -4,12 +4,12 @@ import sys
 from allennlp.commands import main
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
-                    level=logging.DEBUG,
+                    level=logging.INFO, #DEBUG
                     datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 
-config_file = "experiments/allenel_single_test.json"
+config_file = "experiments/allenel_single_use_vocab_model.jsonnet"
 
 # Use overrides to train on CPU.
 overrides = json.dumps({"trainer": {"cuda_device": -1}})
@@ -31,6 +31,7 @@ sys.argv = [
     "-s", serialization_dir,
     "--include-package", "allenel",
     "-o", overrides,
+    "-f"
 ]
 
 main()
