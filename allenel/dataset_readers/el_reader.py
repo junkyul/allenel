@@ -24,7 +24,7 @@ class EnityLinknigDatasetReader(DatasetReader):
                  resource_path: str,
                  n_types: int,
                  ) -> None:
-        super().__init__(lazy=False)
+        super().__init__(lazy=True)
         self.reource_path = resource_path
         self.sentence_tokenizer = WordTokenizer(word_splitter=JustSpacesWordSplitter(), start_tokens=[START_SYMBOL], end_tokens=[END_SYMBOL])
         self.sentence_indexers = {"tokens": SingleIdTokenIndexer(namespace="sentences")}

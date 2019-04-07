@@ -16,7 +16,7 @@ local n_types = 114;            # len of types vocab
 //  },
 //
 //
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
   "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
   "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
   "evaluate_on_test": true,
@@ -145,8 +145,8 @@ local n_types = 114;            # len of types vocab
 //
 //
   "trainer": {
-    "num_epochs": 50,
-    "cuda_device": 0,    // model device cpu -> -1, gpu -> 0
+    "num_epochs": 5,
+    "cuda_device": [0, 1],    // model device cpu -> -1, gpu -> 0
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",
