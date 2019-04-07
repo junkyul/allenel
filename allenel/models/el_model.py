@@ -65,13 +65,13 @@ class EnityLinknigModel(Model):
 
     @overrides
     def forward(self,
-                wid: List[str],
-                title: List[str],
-                sentence: Dict[str, torch.LongTensor],              # shape B x seq_len x 300 (word2vec)
+                #wid: List[str],
+                #title: List[str],
+                #sentence: Dict[str, torch.LongTensor],              # shape B x seq_len x 300 (word2vec)
                 sentence_left: Dict[str, torch.LongTensor],         # shape B x seq_len x 300 (word2vec)
                 sentence_right: Dict[str, torch.LongTensor],
-                mention: List[str],
-                mention_normalized: List[str],
+                #mention: List[str],
+                #mention_normalized: List[str],
                 coherences: Dict[str, torch.LongTensor],
                 candidates: Dict[str, torch.LongTensor],
                 targets: torch.LongTensor,

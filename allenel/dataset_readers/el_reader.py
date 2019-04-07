@@ -83,14 +83,14 @@ class EnityLinknigDatasetReader(DatasetReader):
         sentence_left_field = TextField(tokenized_left, self.sentence_indexers)
         sentence_right_field = TextField(tokenized_right, self.sentence_indexers)       # 3 sentences share vocab
 
-        mention_surface_field = MetadataField(mention_surface)
+        #mention_surface_field = MetadataField(mention_surface)
         mention_surface_normalized = EnityLinknigDatasetReader.getLnrm(mention_surface)
-        mention_normalized_field = MetadataField(mention_surface_normalized)
-        wid_field = MetadataField(wiki_id)
-        title_field = MetadataField(wiki_title)
+        #mention_normalized_field = MetadataField(mention_surface_normalized)
+        #wid_field = MetadataField(wiki_id)
+        #title_field = MetadataField(wiki_title)
 
-#        type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
-#                                     skip_indexing=False, num_labels=self.n_types)
+        #type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
+        #                              skip_indexing=False, num_labels=self.n_types)
 
 
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
@@ -110,14 +110,14 @@ class EnityLinknigDatasetReader(DatasetReader):
         target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
 
         fields = {
-            "wid": wid_field,                                   # label -> meta
-            "title": title_field,                               # label -> meta
- #           "types": type_field,                                # multi label for one hot
-            "sentence": sentence_field,                         # text
+            #"wid": wid_field,                                   # label -> meta
+            #"title": title_field,                               # label -> meta
+            # "types": type_field,                                # multi label for one hot
+            #"sentence": sentence_field,                         # text
             "sentence_left": sentence_left_field,               # text
             "sentence_right": sentence_right_field,             # text
-            "mention": mention_surface_field,                   # meta
-            "mention_normalized": mention_normalized_field,     # meta
+            #"mention": mention_surface_field,                   # meta
+            #"mention_normalized": mention_normalized_field,     # meta
             "coherences": coherences_field,                     # multi label -> text
             "candidates": candidates_field,                     # multi label -> text
             "targets": target_field

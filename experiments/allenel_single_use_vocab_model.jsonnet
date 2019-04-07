@@ -77,7 +77,7 @@
 //
   "iterator": {
     "type": "basic",
-    "batch_size": 100
+    "batch_size": 1000
   },
 //
   "trainer": {
