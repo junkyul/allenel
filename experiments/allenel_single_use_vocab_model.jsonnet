@@ -16,10 +16,9 @@ local n_types = 114;            # len of types vocab
 //  },
 //
 //
-//  "train_data_path": "/home/junkyul/conda/neural-el_train/train_short.mens",
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
-  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev_short.txt",
-  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test_short.txt",
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
+  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
+  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
   "evaluate_on_test": true,
 //
 //
