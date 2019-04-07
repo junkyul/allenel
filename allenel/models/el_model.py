@@ -67,6 +67,7 @@ class EnityLinknigModel(Model):
     def forward(self,
                 #wid: List[str],
                 #title: List[str],
+                #types: Dict[str, torch.LongTensor],
                 #sentence: Dict[str, torch.LongTensor],              # shape B x seq_len x 300 (word2vec)
                 sentence_left: Dict[str, torch.LongTensor],         # shape B x seq_len x 300 (word2vec)
                 sentence_right: Dict[str, torch.LongTensor],

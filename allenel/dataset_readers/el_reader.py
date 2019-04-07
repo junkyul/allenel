@@ -117,7 +117,7 @@ class EnityLinknigDatasetReader(DatasetReader):
         fields = {
             #"wid": wid_field,                                   # label -> meta
             #"title": title_field,                               # label -> meta
-            # "types": type_field,                                # multi label for one hot
+            "types": types_field,                                # multilabe -> text
             #"sentence": sentence_field,                         # text
             "sentence_left": sentence_left_field,               # text
             "sentence_right": sentence_right_field,             # text

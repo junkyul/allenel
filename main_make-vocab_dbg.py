@@ -9,7 +9,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 logger = logging.getLogger(__name__)
 
 
-config_file = "experiments/allenel_single_use_vocab.json"
+config_file = "experiments/allenel_vocab.json"
 
 # Use overrides to train on CPU.
 overrides = json.dumps({"trainer": {"cuda_device": -1}})
