@@ -1,12 +1,9 @@
 local n_types = 114;            # len of types vocab
-//local n_coherences = 3753616;   # len of coherences vocab
-//local n_entities = 408627;      # len of wid vocab
 {
   "dataset_reader": {
     "type": "el_reader",
     "resource_path": "/home/junkyul/conda/neural-el_resources",
     "n_types": n_types,
-//    "n_coherences": n_coherences
   },
 //
 //
@@ -24,31 +21,13 @@ local n_types = 114;            # len of types vocab
 //
   "model": {
     "type": "el_model",
-//
-//"text_field_embedder": {
-//    "tokens": {
-//                "type": "embedding",
-//                "pretrained_file": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.6B.100d.txt.gz",
-//                "embedding_dim": 100,
-//                "trainable": false
-//     }
-//},
-//    "sentence_embedder": {
-//      "token_embedder": {
-//        "tokens": {
-//          "type": "embedding",
-//          "embedding_dim": 300,
-////          "pretrained_file": "/home/junkyul/conda/glove/glove.840B.300d.txt.gz",
-//        }
-//      },
-//    },
-//
     "sentence_embedder": {
       "token_embedders": {
         "tokens": {
           "type": "embedding",
           "vocab_namespace": "sentences",
-          "embedding_dim": 300
+          "embedding_dim": 300,
+          "sparse": true,
         }
       }
     },
@@ -57,33 +36,21 @@ local n_types = 114;            # len of types vocab
         "tokens": {
           "type": "embedding",
           "embedding_dim": 200,
-//          "padding_index": 0,
-          "vocab_namespace": "wids"
+          "vocab_namespace": "wids",
+          "sparse": true
         }
       }
-//      "wids": {
-//        "type": "embedding",
-//        "embedding_dim": 200,
-//        "vocab_namespace": "wids",
-//      }
     },
-//
     "coherence_embedder": {
       "token_embedders": {
         "tokens": {
           "type": "embedding",
           "embedding_dim": 100,
-//          "padding_index": 0,
-          "vocab_namespace": "coherences"
+          "vocab_namespace": "coherences",
+          "sparse": true
         }
       }
-//      "coherences": {
-//        "type": "embedding",
-//        "embedding_dim": 100,
-//        "vocab_namespace": "coherences",
-//      }
     },
-//
     "left_seq2vec": {
       "type": "lstm",
         "bidirectional": false,
@@ -107,16 +74,6 @@ local n_types = 114;            # len of types vocab
       "activations": "relu",
       "dropout": 0.4
     },
-//
-//    "coherence_embedding_opt": {
-//      "num_embeddings": n_coherences,
-//      "embedding_dim": 100,
-//      "padding_index" : 0,
-//      "trainable": true,
-//      "vocab_namespace": "coherences",
-//      "sparse": false
-//    },
-//
     "ff_context": {
       "input_dim": 200,
       "num_layers": 1,
@@ -124,25 +81,12 @@ local n_types = 114;            # len of types vocab
       "activations": "relu",
       "dropout": 0.4
     },
-//
-//    "entity_embedding_opt": {
-//      "num_embeddings": n_entities,
-//      "embedding_dim": 200,
-//      "padding_index" : 0,
-//      "trainable": true,
-//      "vocab_namespace": "wid",
-//      "sparse": false
-//    },
   },
-//
 //
   "iterator": {
     "type": "basic",
-    "batch_size": 2
-//    "max_instances_in_memory": 1000,
-//    "cache_instances": true
+    "batch_size": 100
   },
-//
 //
   "trainer": {
     "num_epochs": 5,
@@ -151,8 +95,8 @@ local n_types = 114;            # len of types vocab
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",
     "optimizer": {
-      "type": "adam",
-//      "type": "dense_sparse_adam",
+      //"type": "adam",
+      "type": "dense_sparse_adam",
       "lr": 0.005
     },
     "patience": 10
