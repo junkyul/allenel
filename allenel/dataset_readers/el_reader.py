@@ -22,7 +22,6 @@ class EnityLinknigDatasetReader(DatasetReader):
 
     def __init__(self,
                  resource_path: str,
-                 n_types: int,
                  ) -> None:
         super().__init__(lazy=True)
         self.reource_path = resource_path
@@ -34,8 +33,6 @@ class EnityLinknigDatasetReader(DatasetReader):
 
         self.wid_tokenizer = WordTokenizer(word_splitter=JustSpacesWordSplitter())
         self.wid_indexers = {"tokens": SingleIdTokenIndexer(namespace="wids")}
-
-        self.n_types = n_types
 
         import pickle, os
         logger.info("start reading crosswikis.pruned.pkl")
@@ -91,17 +88,13 @@ class EnityLinknigDatasetReader(DatasetReader):
         mention_normalized_field = MetadataField(mention_surface_normalized)
         wid_field = MetadataField(wiki_id)
         title_field = MetadataField(wiki_title)
-        # wid_field = LabelField(label=wiki_id, label_namespace='wid', skip_indexing=False)
-        # title_field = LabelField(label=wiki_title, label_namespace='title', skip_indexing=False)
 
-        type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
-                                     skip_indexing=False, num_labels=self.n_types)
+#        type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
+#                                     skip_indexing=False, num_labels=self.n_types)
 
 
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
         coherences_field = TextField(coherence_tokenized, self.coherence_indexers)
-        # coherences_field = MultiLabelField(labels=coherence_mentions.split(" "), label_namespace="coherences",
-        #                                    skip_indexing=False, num_labels=self.n_coherences)
 
         candidates = [wiki_id]
         if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
@@ -114,13 +107,12 @@ class EnityLinknigDatasetReader(DatasetReader):
         if len(candidates_tokenized) == 1:
             candidates_tokenized = candidates_tokenized + [Token("@@UNKNOWN@@")]
         candidates_field = TextField(candidates_tokenized, self.wid_indexers)
-        # candidates_field = MultiLabelField(labels=candidates, label_namespace='wid', skip_indexing=False) # no indexing
         target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
 
         fields = {
             "wid": wid_field,                                   # label -> meta
             "title": title_field,                               # label -> meta
-            "types": type_field,                                # multi label for one hot
+ #           "types": type_field,                                # multi label for one hot
             "sentence": sentence_field,                         # text
             "sentence_left": sentence_left_field,               # text
             "sentence_right": sentence_right_field,             # text

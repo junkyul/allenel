@@ -67,7 +67,6 @@ class EnityLinknigModel(Model):
     def forward(self,
                 wid: List[str],
                 title: List[str],
-                types: torch.LongTensor,
                 sentence: Dict[str, torch.LongTensor],              # shape B x seq_len x 300 (word2vec)
                 sentence_left: Dict[str, torch.LongTensor],         # shape B x seq_len x 300 (word2vec)
                 sentence_right: Dict[str, torch.LongTensor],
@@ -93,7 +92,7 @@ class EnityLinknigModel(Model):
 
         # coherence
         coherences = self.coherence_embedder(coherences)
-        coherences = torch.sum(coherences, dim=1).view(coherence_embedded.size()[0], -1)        # B x
+        coherences = torch.sum(coherences, dim=1).view(coherences.size()[0], -1)        # B x
         coherences = self.coherence_dropout(coherences)
         coherences = self.coherence_embedder_relu(coherences)
 

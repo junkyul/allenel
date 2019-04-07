@@ -1,23 +1,15 @@
-local n_types = 114;            # len of types vocab
 {
   "dataset_reader": {
     "type": "el_reader",
     "resource_path": "/home/junkyul/conda/neural-el_resources",
-    "n_types": n_types,
   },
-//
-//
 //  "vocabulary": {
 //    "directory_path": "/home/junkyul/conda/allenel/vocab",
-//    "extend" : true
 //  },
-//
-//
   "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
   "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
   "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
   "evaluate_on_test": true,
-//
 //
   "model": {
     "type": "el_model",
