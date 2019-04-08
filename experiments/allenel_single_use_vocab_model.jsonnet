@@ -3,12 +3,12 @@
     "type": "el_reader",
     "resource_path": "/home/junkyul/conda/neural-el_resources",
   },
-//  "vocabulary": {
-//    "directory_path": "/home/junkyul/conda/allenel/vocab",
-//  },
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train_short.mens",
-  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev_short.txt",
-  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test_short.txt",
+  "vocabulary": {
+    "directory_path": "/home/junkyul/conda/allenel/vocab",
+  },
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
+  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
+  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
   "evaluate_on_test": true,
 //
   "model": {
@@ -82,7 +82,7 @@
 //
   "trainer": {
     "num_epochs": 5,
-    "cuda_device": [0, 1],    // model device cpu -> -1, gpu -> 0
+    "cuda_device": -1, //[0, 1],    // model device cpu -> -1, gpu -> 0
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",
@@ -91,7 +91,7 @@
       "type": "dense_sparse_adam",
       "lr": 0.005
     },
-    "patience": 10
+    //"patience": 10
   }
 }
 
