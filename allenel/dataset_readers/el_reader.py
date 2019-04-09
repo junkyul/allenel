@@ -95,8 +95,8 @@ class EnityLinknigDatasetReader(DatasetReader):
 
         # type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
         #                              skip_indexing=False, num_labels=self.n_types)
-        types_tokenized = self.type_tokenizer.tokenize(free_types)
-        types_field = TextField(types_tokenized, self.type_indexers)
+        # types_tokenized = self.type_tokenizer.tokenize(free_types)
+        # types_field = TextField(types_tokenized, self.type_indexers)
 
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
         coherences_field = TextField(coherence_tokenized, self.coherence_indexers)
@@ -117,7 +117,7 @@ class EnityLinknigDatasetReader(DatasetReader):
         fields = {
             #"wid": wid_field,                                   # label -> meta
             #"title": title_field,                               # label -> meta
-            "types": types_field,                                # multilabe -> text
+            #"types": types_field,                                # multilabe -> text
             #"sentence": sentence_field,                         # text
             "sentence_left": sentence_left_field,               # text
             "sentence_right": sentence_right_field,             # text
