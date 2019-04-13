@@ -12,6 +12,7 @@ from allennlp.data.instance import Instance
 from allennlp.data.fields import LabelField, TextField, MultiLabelField, MetadataField
 
 from allennlp.common.util import START_SYMBOL, END_SYMBOL
+from allenel.dataset_readers.el_multiproc_reader import EnityLinknigDatasetMultiReader
 
 import logging
 logger = logging.getLogger(__name__)
@@ -42,6 +43,8 @@ class EnityLinknigDatasetReader(DatasetReader):
             logger.info("start reading crosswikis.pruned.pkl")
             EnityLinknigDatasetReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
             logger.info("end reading crosswikis.pruned.pkl")
+        elif EnityLinknigDatasetMultiReader.crosswiki:
+                EnityLinknigDatasetReader.crosswiki = EnityLinknigDatasetMultiReader.crosswiki
 
     @overrides
     def _read(self, file_path):
