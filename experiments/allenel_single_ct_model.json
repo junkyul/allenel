@@ -1,12 +1,16 @@
 {
   "dataset_reader": {
-    "type": "el_reader"
+    "type": "el_reader",
+    "resource_path": "/home/junkyul/conda/neural-el_resources",
   },
   "vocabulary": {
-    "directory_path": "/home/junkyul/conda/allenel/vocab",
-    "extend" : true
+    "directory_path": "/home/junkyul/conda/allenel/vocab_custom",
   },
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens.0",
+  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
+  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
+  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
+  "evaluate_on_test": true,
+//
   "model": {
     "type": "el_model",
     "sentence_embedder": {
@@ -14,7 +18,10 @@
         "tokens": {
           "type": "embedding",
           "vocab_namespace": "sentences",
-          "embedding_dim": 300
+          "embedding_dim": 300,
+          "sparse": true,
+          "pretrained_file": "/home/junkyul/conda/glove/glove.wiki.300d.txt.gz",
+          "trainable": false
         }
       }
     },
@@ -23,7 +30,8 @@
         "tokens": {
           "type": "embedding",
           "embedding_dim": 200,
-          "vocab_namespace": "wids"
+          "vocab_namespace": "wids",
+          "sparse": true
         }
       }
     },
@@ -32,7 +40,8 @@
         "tokens": {
           "type": "embedding",
           "embedding_dim": 100,
-          "vocab_namespace": "coherences"
+          "vocab_namespace": "coherences",
+          "sparse": true
         }
       }
     },
@@ -72,18 +81,19 @@
     "type": "basic",
     "batch_size": 1000
   },
+//
   "trainer": {
-    "num_epochs": 0,
-    "cuda_device": 0,    // model device cpu -> -1, gpu -> 0
+    "num_epochs": 5,
+    "cuda_device": 0, //[0, 1],    // model device cpu -> -1, gpu -> 0
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",
     "optimizer": {
-      "type": "adam",
-//      "type": "dense_sparse_adam",
+      //"type": "adam",
+      "type": "dense_sparse_adam",
       "lr": 0.005
     },
-    "patience": 10
+    //"patience": 10
   }
 }
 
