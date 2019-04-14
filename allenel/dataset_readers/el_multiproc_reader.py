@@ -12,17 +12,18 @@ class EnityLinknigDatasetMultiReader(MultiprocessDatasetReader):
 
     def __init__(self,
                  base_reader: DatasetReader,
-                 resource_path: str,
-                 num_workers: int,
+                 resource_path: str = "",
+                 num_workers: int = 1,
                  epochs_per_read: int = 1,
                  output_queue_size: int = 1000,
                  ) -> None:
         super().__init__(base_reader, num_workers, epochs_per_read, output_queue_size)
 
-        import pickle, os
-        logger.info("reading crosswikis.pruned.pkl")
-        EnityLinknigDatasetMultiReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
-        logger.info("end reading crosswikis.pruned.pkl")
+        if resource_path:
+            import pickle, os
+            logger.info("reading crosswikis.pruned.pkl")
+            EnityLinknigDatasetMultiReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
+            logger.info("end reading crosswikis.pruned.pkl")
 
 
 

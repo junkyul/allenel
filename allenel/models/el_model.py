@@ -19,17 +19,18 @@ logger = logging.getLogger(__name__)
 class EnityLinknigModel(Model):
     def __init__(self,
                  vocab: Vocabulary,
-                 sentence_embedder: TextFieldEmbedder,  # Glove???
+                 sentence_embedder: TextFieldEmbedder,
                  entity_embedder: TextFieldEmbedder,
                  coherence_embedder: TextFieldEmbedder,
+                 type_embedder: Embedding = None,
                  word_embedding_dropout: float = 0.4,
                  coherence_embedding_dropout: float = 0.6,
-                 left_seq2vec: Seq2VecEncoder = None,  # PytorchSeq2VecWrapper
-                 right_seq2vec: Seq2VecEncoder = None,  # word drop out should be applied before embedding?
+                 left_seq2vec: Seq2VecEncoder = None,
+                 right_seq2vec: Seq2VecEncoder = None,
                  ff_seq2vecs : FeedForward = None,
-                 ff_context: FeedForward = None,  # last feed forward layer [vm, vlocal]
-                 initializer: InitializerApplicator = InitializerApplicator(),  # todo how to init normal 0, 0.01
-                 regularizer: Optional[RegularizerApplicator] = None,  # todo how to use this?
+                 ff_context: FeedForward = None,
+                 initializer: InitializerApplicator = InitializerApplicator(),
+                 regularizer: Optional[RegularizerApplicator] = None,
                  )-> None:
 
         super(EnityLinknigModel, self).__init__(vocab, regularizer)
@@ -50,10 +51,13 @@ class EnityLinknigModel(Model):
         self.coherence_dropout = torch.nn.Dropout(coherence_embedding_dropout)
         self.coherence_embedder_relu = torch.nn.ReLU(inplace=False)
 
-        # context
         self.ff_context = ff_context
 
         self.entity_embedder = entity_embedder
+
+        self.type_embedder = type_embedder
+        if self.type_embedder:
+            self.type_embedder_sigmoid = torch.nn.Soft
 
         # loss
         self.loss_context = torch.nn.CrossEntropyLoss()
@@ -65,17 +69,17 @@ class EnityLinknigModel(Model):
 
     @overrides
     def forward(self,
-                #wid: List[str],
-                #title: List[str],
-                #types: Dict[str, torch.LongTensor],
-                #sentence: Dict[str, torch.LongTensor],              # shape B x seq_len x 300 (word2vec)
-                sentence_left: Dict[str, torch.LongTensor],         # shape B x seq_len x 300 (word2vec)
+                #sentence: Dict[str, torch.LongTensor],             # shape B x seq_len x 300
+                sentence_left: Dict[str, torch.LongTensor],
                 sentence_right: Dict[str, torch.LongTensor],
-                #mention: List[str],
-                #mention_normalized: List[str],
-                coherences: Dict[str, torch.LongTensor],
+                mention: List[str],
                 candidates: Dict[str, torch.LongTensor],
-                targets: torch.LongTensor,
+                mention_normalized: List[str],
+                types: Dict[str, torch.LongTensor],
+                coherences: Dict[str, torch.LongTensor],
+                targets: torch.LongTensor = None,
+                # wid: List[str] = None,
+                # title: List[str] = None,
                 )-> Dict[str, torch.Tensor]:
         # local context
         mask_left = get_text_field_mask(sentence_left)
@@ -102,7 +106,10 @@ class EnityLinknigModel(Model):
         v_local = self.ff_context(v_local)
         v_local = v_local.view(v_local.size()[0], 1, -1)
 
-        # entity
+        if self.type_embedder:
+            pass
+
+        # entity sampled by candidates
         candidates = self.entity_embedder(candidates)    # first element is true label
 
         scores = torch.matmul(candidates, v_local.view(v_local.size()[0], -1, 1) )

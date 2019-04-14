@@ -38,8 +38,8 @@ class EnityLinknigDatasetReader(DatasetReader):
         self.type_tokenizer = WordTokenizer(word_splitter=JustSpacesWordSplitter())
         self.type_indexers = {"tokens": SingleIdTokenIndexer(namespace="types")}
 
-        import pickle, os
         if resource_path:
+            import pickle, os
             logger.info("start reading crosswikis.pruned.pkl")
             EnityLinknigDatasetReader.crosswiki = pickle.load(open(os.path.join(resource_path, "crosswikis.pruned.pkl"), "rb"))
             logger.info("end reading crosswikis.pruned.pkl")
@@ -55,7 +55,7 @@ class EnityLinknigDatasetReader(DatasetReader):
                 temp = line.split("\t")     # separated by Tabs
                 free_id, wiki_id, wiki_title = temp[0], temp[1], temp[2]
                 st_idx, et_idx, mention_surface, mention_sentence= temp[3], temp[4], temp[5], temp[6]
-                free_types = temp[7] if len(temp) > 7 else ""
+                free_types = temp[7] if len(temp) > 7 else "@@UNKNOWN@@"
                 coherence_mentions = temp[8] if len(temp) > 8 else ""
                 yield self.text_to_instance(wiki_id, wiki_title, int(st_idx.strip()), int(et_idx.strip()),
                                             mention_surface, mention_sentence, free_types, coherence_mentions)
@@ -84,20 +84,19 @@ class EnityLinknigDatasetReader(DatasetReader):
                          )-> Instance:
 
         sentence_tokenized = self.sentence_tokenizer.tokenize(mention_sentence)
-        sentence_field = TextField(sentence_tokenized, self.sentence_indexers)
+        # sentence_field = TextField(sentence_tokenized, self.sentence_indexers)
         tokenized_left = [Token(START_SYMBOL)] + sentence_tokenized[1:st_idx+1] + [Token(END_SYMBOL)]
         tokenized_right = [Token(START_SYMBOL)] + sentence_tokenized[-2:et_idx+1:-1] + [Token(END_SYMBOL)]
         sentence_left_field = TextField(tokenized_left, self.sentence_indexers)
         sentence_right_field = TextField(tokenized_right, self.sentence_indexers)       # 3 sentences share vocab
 
-        #mention_surface_field = MetadataField(mention_surface)
+        mention_surface_field = MetadataField(mention_surface)
         mention_surface_normalized = EnityLinknigDatasetReader.getLnrm(mention_surface)
-        #mention_normalized_field = MetadataField(mention_surface_normalized)
-        #wid_field = MetadataField(wiki_id)
-        #title_field = MetadataField(wiki_title)
+        mention_normalized_field = MetadataField(mention_surface_normalized)
+        wid_field = MetadataField(wiki_id)
+        title_field = MetadataField(wiki_title)
 
-        # type_field = MultiLabelField(labels=free_types.split(" "), label_namespace="types",
-        #                              skip_indexing=False, num_labels=self.n_types)
+        types_field = MultiLabelField(labels=free_types.split(" "), label_namespace="type_labels", skip_indexing=False)
         # types_tokenized = self.type_tokenizer.tokenize(free_types)
         # types_field = TextField(types_tokenized, self.type_indexers)
 
@@ -118,17 +117,17 @@ class EnityLinknigDatasetReader(DatasetReader):
         target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
 
         fields = {
-            #"wid": wid_field,                                   # label -> meta
-            #"title": title_field,                               # label -> meta
-            #"types": types_field,                                # multilabe -> text
-            #"sentence": sentence_field,                         # text
-            "sentence_left": sentence_left_field,               # text
-            "sentence_right": sentence_right_field,             # text
-            #"mention": mention_surface_field,                   # meta
-            #"mention_normalized": mention_normalized_field,     # meta
-            "coherences": coherences_field,                     # multi label -> text
-            "candidates": candidates_field,                     # multi label -> text
-            "targets": target_field
+            #"sentence": sentence_field,
+            "sentence_left": sentence_left_field,
+            "sentence_right": sentence_right_field,
+            "mention": mention_surface_field,
+            "candidates": candidates_field,
+            "mention_normalized": mention_normalized_field,
+            "types": types_field,
+            "coherences": coherences_field,
+            "targets": target_field,
+            # "wid": wid_field,
+            # "title": title_field,
         }
 
         return Instance(fields)     # no indexing no vocabulary
