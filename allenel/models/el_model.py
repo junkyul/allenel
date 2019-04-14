@@ -80,7 +80,7 @@ class EnityLinknigModel(Model):
     def forward(self,
                 sentence_left: Dict[str, torch.LongTensor],         # [B, sent len, 300]
                 sentence_right: Dict[str, torch.LongTensor],
-                mention: List[str],
+                # mention: List[str],
                 mention_normalized: List[str],
                 candidates: Dict[str, torch.LongTensor],
                 types: Dict[str, torch.LongTensor] = None,
@@ -114,7 +114,7 @@ class EnityLinknigModel(Model):
 
         # entity sampled by strong candidates (no negative sampling)
         candidates = self.entity_embedder(candidates)    # first element is true wiki id
-        scores_text = torch.matmul(candidates, v_local.view(v_local.shape[0], -1, 1) )  # B x C x dim  By B x dim x 1 (matmul) => B x C x 1
+        scores_text = torch.matmul(candidates, v_local.view(v_local.shape[0], -1, 1) )  # [B, C, 200] * [B, 200, 1]
         scores_text = torch.squeeze(scores_text)    # [B, C]
 
         # type
@@ -135,7 +135,7 @@ class EnityLinknigModel(Model):
             else:
                 loss_mtypes = 0.0
 
-        # pass B x C (for each candidate score) and B x 1 true targets
+        # scores [B, C], targets [B, 1]
         loss = self.loss_text(scores_text, targets)  + loss_etypes + loss_mtypes
 
         with torch.no_grad():

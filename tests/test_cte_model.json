@@ -82,12 +82,13 @@
     }
   },
   "iterator": {
-    "type": "basic",
+    "type": "bucket",
+    "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
     "batch_size": 1000
   },
   "trainer": {
-    "num_epochs": 5,
-    "cuda_device": 0,
+    "num_epochs": 2,
+    "cuda_device": -1,
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",

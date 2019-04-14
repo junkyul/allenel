@@ -45,11 +45,11 @@
         }
       }
     },
-    "text_embedder": {
-      "type": "embedding",
-      "embedding_dim": 200,
-      "vocab_namespace": "type_labels",
-      "sparse": false
+    "type_embedder": {
+          "type": "embedding",
+          "embedding_dim": 200,
+          "sparse": false,
+          "vocab_namespace": "type_labels"
     },
     "left_seq2vec": {
       "type": "lstm",
@@ -81,11 +81,12 @@
     }
   },
   "iterator": {
-    "type": "basic",
+    "type": "bucket",
+    "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
     "batch_size": 1000
   },
   "trainer": {
-    "num_epochs": 5,
+    "num_epochs": 1,
     "cuda_device": 0,
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails

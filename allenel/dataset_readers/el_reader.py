@@ -120,7 +120,7 @@ class EnityLinknigDatasetReader(DatasetReader):
             #"sentence": sentence_field,
             "sentence_left": sentence_left_field,
             "sentence_right": sentence_right_field,
-            "mention": mention_surface_field,
+            # "mention": mention_surface_field,
             "mention_normalized": mention_normalized_field,
             "candidates": candidates_field,
             "types": types_field,
