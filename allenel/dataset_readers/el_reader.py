@@ -93,10 +93,11 @@ class EnityLinknigDatasetReader(DatasetReader):
         mention_surface_field = MetadataField(mention_surface)
         mention_surface_normalized = EnityLinknigDatasetReader.getLnrm(mention_surface)
         mention_normalized_field = MetadataField(mention_surface_normalized)
-        wid_field = MetadataField(wiki_id)
-        title_field = MetadataField(wiki_title)
+        # wid_field = MetadataField(wiki_id)          # can access to wiki http page
+        # title_field = MetadataField(wiki_title)     # name of the title of the wiki http page
 
         types_field = MultiLabelField(labels=free_types.split(" "), label_namespace="type_labels", skip_indexing=False)
+        # todo types? type_labels?
         # types_tokenized = self.type_tokenizer.tokenize(free_types)
         # types_field = TextField(types_tokenized, self.type_indexers)
 
@@ -105,11 +106,10 @@ class EnityLinknigDatasetReader(DatasetReader):
 
         candidates = [wiki_id]
         if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
-            priors = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0]     # probs for prediction
-            if wiki_id in priors:
-                priors.remove(wiki_id)
-            candidates += priors
-
+            prior_wiki_ids = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0] # crosswiki ( [candidates], [probs] )
+            if wiki_id in prior_wiki_ids:
+                prior_wiki_ids.remove(wiki_id)
+            candidates += prior_wiki_ids                # prior prob should read by cwiki[mention_norm][0]->[1] index of cand id -> prior prob
         candidates_tokenized = [Token(t) for t in candidates]
         if len(candidates_tokenized) == 1:
             candidates_tokenized = candidates_tokenized + [Token("@@UNKNOWN@@")]
@@ -121,8 +121,8 @@ class EnityLinknigDatasetReader(DatasetReader):
             "sentence_left": sentence_left_field,
             "sentence_right": sentence_right_field,
             "mention": mention_surface_field,
-            "candidates": candidates_field,
             "mention_normalized": mention_normalized_field,
+            "candidates": candidates_field,
             "types": types_field,
             "coherences": coherences_field,
             "targets": target_field,
