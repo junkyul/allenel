@@ -8,13 +8,10 @@ logger = logging.getLogger(__name__)
 
 multi_reader = EnityLinknigDatasetMultiReader(
     base_reader= EnityLinknigDatasetReader(resource_path=""),
-    resource_path="/home/junkyul/conda/neural-el_resources",
+    resource_path="",
     num_workers=1
 )
-file_pattern = "/home/junkyul/conda/allenel/tests/fixtures/train.mens.*"
-result = []
+file_pattern = "/home/junkyul/conda/allenel/tests/fixtures/train.mens.short*"
 for i, p in enumerate(multi_reader.read(file_pattern)):
-    print(i)
     print(p)
 
-exit()
