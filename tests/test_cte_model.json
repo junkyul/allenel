@@ -1,0 +1,110 @@
+{
+  "dataset_reader": {
+    "type": "el_reader",
+    "resource_path": ""
+  },
+  "vocabulary": {
+    "directory_path": "/home/junkyul/conda/allenel/vocab_custom"
+  },
+  "train_data_path": "/home/junkyul/conda/allenel/tests/fixtures/train.mens.short1",
+  "validation_data_path": "/home/junkyul/conda/allenel/tests/fixtures/conll2012_dev_short.txt",
+  "test_data_path": "/home/junkyul/conda/allenel/tests/fixtures/conll2012_test_short.txt",
+  "evaluate_on_test": true,
+  "model": {
+    "type": "el_model",
+    "model_modules" : "CTE",    // c for context T for type*context E for type*entity D for description
+    "sentence_embedder": {
+      "token_embedders": {
+        "tokens": {
+          "type": "embedding",
+          "vocab_namespace": "sentences",
+          "embedding_dim": 300,
+          "sparse": true
+//          "pretrained_file": "/home/junkyul/conda/glove/glove.wiki.300d.txt.gz",
+//          "trainable": false
+        }
+      }
+    },
+    "entity_embedder": {
+      "token_embedders": {
+        "tokens": {
+          "type": "embedding",
+          "embedding_dim": 200,
+          "vocab_namespace": "wids",
+          "sparse": true
+        }
+      }
+    },
+    "coherence_embedder": {
+      "token_embedders": {
+        "tokens": {
+          "type": "embedding",
+          "embedding_dim": 100,
+          "vocab_namespace": "coherences",
+          "sparse": true
+        }
+      }
+    },
+    "type_embedder": {
+          "type": "embedding",
+//          "num_embeddings": 114,
+          "embedding_dim": 200,
+          "sparse": false,
+          "vocab_namespace": "type_labels"
+    },
+    "left_seq2vec": {
+      "type": "lstm",
+        "bidirectional": false,
+        "input_size": 300,
+        "hidden_size": 100,
+        "num_layers": 1
+    },
+    "right_seq2vec": {
+      "type": "lstm",
+        "bidirectional": false,
+        "input_size": 300,
+        "hidden_size": 100,
+        "num_layers": 1
+    },
+    "ff_seq2vecs" : {
+      "input_dim": 200,
+      "num_layers": 1,
+      "hidden_dims": 100,
+      "activations": "relu",
+      "dropout": 0.4
+    },
+    "ff_context": {
+      "input_dim": 200,
+      "num_layers": 1,
+      "hidden_dims": 200,
+      "activations": "relu",
+      "dropout": 0.4
+    }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 1000
+  },
+  "trainer": {
+    "num_epochs": 5,
+    "cuda_device": 0,
+//    "gradient_norm": 1.0,
+    "grad_clipping": 5.0, //if norm fails
+//    "validation_metric": "+accuracy",
+    "optimizer": {
+      "type": "dense_sparse_adam",
+      "lr": 0.005
+    }
+    //"patience": 10
+  }
+}
+//The available optimizers are
+//
+//“adadelta”
+//“adagrad”
+//“adam”
+//“sparse_adam”
+//“sgd”
+//“rmsprop
+//“adamax
+//“averaged_sgd
