@@ -83,7 +83,7 @@
   "iterator": {
     "type": "bucket",
     "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
-    "batch_size": 1000
+    "batch_size": 64
   },
   "trainer": {
     "num_epochs": 1,
