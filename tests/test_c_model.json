@@ -1,14 +1,14 @@
 {
   "dataset_reader": {
     "type": "el_reader",
-    "resource_path": "/home/junkyul/conda/neural-el_resources"
+    "resource_path": ""
   },
   "vocabulary": {
     "directory_path": "/home/junkyul/conda/allenel/vocab_custom"
   },
-  "train_data_path": "/home/junkyul/conda/neural-el_train/train.mens",
-  "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
-  "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
+  "train_data_path": "/home/junkyul/conda/allenel/tests/fixtures/train.mens.short1",
+  "validation_data_path": "/home/junkyul/conda/allenel/tests/fixtures/conll2012_dev_short.txt",
+  "test_data_path": "/home/junkyul/conda/allenel/tests/fixtures/conll2012_test_short.txt",
   "evaluate_on_test": true,
   "model": {
     "type": "el_model",
@@ -77,11 +77,11 @@
   "iterator": {
     "type": "bucket",
     "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
-    "batch_size": 64
+    "batch_size": 5
   },
   "trainer": {
-    "num_epochs": 5,
-    "cuda_device": 0,
+    "num_epochs": 1,
+    "cuda_device": -1,
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails
 //    "validation_metric": "+accuracy",
@@ -92,7 +92,6 @@
     //"patience": 10
   }
 }
-
 //The available optimizers are
 //
 //“adadelta”
