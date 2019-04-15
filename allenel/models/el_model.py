@@ -127,27 +127,19 @@ class EnityLinknigModel(Model):
             candidates_embedded = self.entity_embedder(candidates)    # first element is true wiki id
             scores_text = torch.matmul(candidates_embedded, v_local.view(v_local.shape[0], -1, 1))  # [B, C, 200] * [B, 200, 1]
             scores_text = torch.squeeze(scores_text)    # [B, C]        for batch B, inner prod of ve * vm per classes
+            loss = self.loss_text(scores_text, targets) # scores [B, C], targets [B, 1]
 
-            # type
             if self.type_embedder:
                 types_embded = self.type_embedder(types)            # [B, T] => [B, T, 200]
                 true_entity = candidates_embedded[:, 0, :].view(candidates_embedded.shape[0], 1, -1)       #[B, 1, 200]
                 if self.loss_etype:
                     scores_etypes = torch.matmul(true_entity, types_embded.view(types_embded.shape[0], self.encoded_dims, -1)) # [B, 1, T]
                     scores_etypes = torch.squeeze(scores_etypes)            # [ B, T]
-                    loss_etypes = self.loss_etype(scores_etypes, types.float())     # [ B, T]
-                else:
-                    loss_etypes = 0.0
-
+                    loss += self.loss_etype(scores_etypes, types.float())     # [ B, T]
                 if self.loss_mtype:
                     scores_mtypes = torch.matmul(v_local, types_embded.view(types_embded.shape[0], self.encoded_dims, -1))
                     scores_mtypes = torch.squeeze(scores_mtypes)
-                    loss_mtypes = self.loss_mtype(scores_mtypes, types.float())
-                else:
-                    loss_mtypes = 0.0
-
-            # scores [B, C], targets [B, 1]
-            loss = self.loss_text(scores_text, targets)  + loss_etypes + loss_mtypes
+                    loss += self.loss_mtype(scores_mtypes, types.float())
 
             with torch.no_grad():
                 for metric in self.metrics.values():
