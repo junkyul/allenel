@@ -17,10 +17,10 @@ from allenel.dataset_readers.el_multiproc_reader import EnityLinknigDatasetMulti
 import logging
 logger = logging.getLogger(__name__)
 
+
 @DatasetReader.register("el_reader")
 class EnityLinknigDatasetReader(DatasetReader):
     crosswiki: Dict[str, tuple] = {}
-
     def __init__(self,
                  resource_path: str = "",
                  ) -> None:
@@ -50,15 +50,23 @@ class EnityLinknigDatasetReader(DatasetReader):
     def _read(self, file_path):
         with open(file_path) as data_file:
             for line in data_file:
-                line = line.strip("\n")
-                if not line: continue
-                temp = line.split("\t")     # separated by Tabs
-                free_id, wiki_id, wiki_title = temp[0], temp[1], temp[2]
-                st_idx, et_idx, mention_surface, mention_sentence= temp[3], temp[4], temp[5], temp[6]
-                free_types = temp[7] if len(temp) > 7 else "@@UNKNOWN@@"
-                coherence_mentions = temp[8] if len(temp) > 8 else ""
-                yield self.text_to_instance(wiki_id, wiki_title, int(st_idx.strip()), int(et_idx.strip()),
-                                            mention_surface, mention_sentence, free_types, coherence_mentions)
+                # line = line.strip("\n")
+                # if not line: continue
+                # temp = line.split("\t") # separated by Tabs
+                # wiki_id = temp[1]
+                # st_idx, et_idx, mention_surface, mention_sentence= temp[3], temp[4], temp[5], temp[6]
+                # free_types = temp[7] if len(temp) > 7 else "@@UNKNOWN@@"
+                # coherence_mentions = temp[8] if len(temp) > 8 else "@@UNKNOWN@@"
+                yield self.text_to_instance(*self.process_line(line))
+
+    def process_line(self, line):
+        line = line.strip("\n")
+        temp = line.split("\t")  # separated by Tabs
+        wiki_id = temp[1]
+        st_idx, et_idx, mention_surface, mention_sentence = temp[3], temp[4], temp[5], temp[6]
+        free_types = temp[7]  # if len(temp) > 7 else "@@UNKNOWN@@"
+        coherence_mentions = temp[8] #if len(temp) > 8 else "@@UNKNOWN@@"
+        return int(st_idx.strip()), int(et_idx.strip()), mention_surface, mention_sentence, free_types, coherence_mentions, wiki_id
 
     @staticmethod
     def getLnrm(arg):
@@ -73,14 +81,13 @@ class EnityLinknigDatasetReader(DatasetReader):
 
     @overrides
     def text_to_instance(self,
-                         wiki_id: str,
-                         wiki_title: str,
                          st_idx: int,
                          et_idx: int,
                          mention_surface: str,
-                         mention_sentence: str,
+                         mention_sentence : str,
                          free_types: str,
-                         coherence_mentions: str
+                         coherence_mentions: str,
+                         wiki_id: str
                          )-> Instance:
 
         sentence_tokenized = self.sentence_tokenizer.tokenize(mention_sentence)
@@ -88,46 +95,51 @@ class EnityLinknigDatasetReader(DatasetReader):
         tokenized_left = [Token(START_SYMBOL)] + sentence_tokenized[1:st_idx+1] + [Token(END_SYMBOL)]
         tokenized_right = [Token(START_SYMBOL)] + sentence_tokenized[-2:et_idx+1:-1] + [Token(END_SYMBOL)]
         sentence_left_field = TextField(tokenized_left, self.sentence_indexers)
-        sentence_right_field = TextField(tokenized_right, self.sentence_indexers)       # 3 sentences share vocab
+        sentence_right_field = TextField(tokenized_right, self.sentence_indexers)
 
-        mention_surface_field = MetadataField(mention_surface)
         mention_surface_normalized = EnityLinknigDatasetReader.getLnrm(mention_surface)
         mention_normalized_field = MetadataField(mention_surface_normalized)
-        # wid_field = MetadataField(wiki_id)          # can access to wiki http page
-        # title_field = MetadataField(wiki_title)     # name of the title of the wiki http page
 
         types_field = MultiLabelField(labels=free_types.split(" "), label_namespace="type_labels", skip_indexing=False)
-        # todo types? type_labels?
-        # types_tokenized = self.type_tokenizer.tokenize(free_types)
-        # types_field = TextField(types_tokenized, self.type_indexers)
-
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
         coherences_field = TextField(coherence_tokenized, self.coherence_indexers)
 
-        candidates = [wiki_id]
-        if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
-            prior_wiki_ids = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0] # crosswiki ( [candidates], [probs] )
-            if wiki_id in prior_wiki_ids:
-                prior_wiki_ids.remove(wiki_id)
-            candidates += prior_wiki_ids                # prior prob should read by cwiki[mention_norm][0]->[1] index of cand id -> prior prob
-        candidates_tokenized = [Token(t) for t in candidates]
-        if len(candidates_tokenized) == 1:
-            candidates_tokenized = candidates_tokenized + [Token("@@UNKNOWN@@")]
-        candidates_field = TextField(candidates_tokenized, self.wid_indexers)
-        target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
+        if wiki_id == "@@UNKNOWN@@":    # because it is the test case
+            if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
+                candidates = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0]
+                candidates_tokenized = [Token(t) for t in candidates]
+                candidates_field = TextField(candidates_tokenized, self.wid_indexers)
+                # candidate_id_meta = MetadataField(candidates)
+            else:
+                candidates_tokenized = [Token("@@UNKNOWN@@")]
+                # todo pass all or None; now if candidate is empty result is unknown
+                candidates_field = TextField(candidates_tokenized, self.wid_indexers)
+                # candidate_id_meta = MetadataField(["@@UNKNOWN@@"])
+            target_field = LabelField("label").empty_field()
+        else:
+            candidates = [wiki_id]
+            if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
+                prior_wiki_ids = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0] # crosswiki ( [candidates], [probs] )
+                if wiki_id in prior_wiki_ids:
+                    prior_wiki_ids.remove(wiki_id)
+                candidates += prior_wiki_ids # prior prob should read by cwiki[mention_norm][0]->[1] index of cand id -> prior prob
+            if len(candidates) == 1:
+                candidates += ["@@UNKNOWN@@"]
+            candidates_tokenized = [Token(t) for t in candidates]
+            candidates_field = TextField(candidates_tokenized, self.wid_indexers)
+            # candidate_id_meta = MetadataField(candidates)
+            target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
 
         fields = {
             #"sentence": sentence_field,
             "sentence_left": sentence_left_field,
             "sentence_right": sentence_right_field,
-            # "mention": mention_surface_field,
             "mention_normalized": mention_normalized_field,
-            "candidates": candidates_field,
             "types": types_field,
             "coherences": coherences_field,
+            "candidates": candidates_field,
+            # "candidate_id_meta": candidate_id_meta,     # possible to get id from indexer? should be...
             "targets": target_field,
-            # "wid": wid_field,
-            # "title": title_field,
         }
 
         return Instance(fields)     # no indexing no vocabulary
