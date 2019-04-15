@@ -1,7 +1,7 @@
 {
   "dataset_reader": {
     "type": "el_reader",
-    "resource_path": ""
+    "resource_path": "/home/junkyul/conda/neural-el_resources"
   },
   "vocabulary": {
     "directory_path": "/home/junkyul/conda/allenel/vocab_custom"
@@ -19,9 +19,9 @@
           "type": "embedding",
           "vocab_namespace": "sentences",
           "embedding_dim": 300,
-          "sparse": true
-//          "pretrained_file": "/home/junkyul/conda/glove/glove.wiki.300d.txt.gz",
-//          "trainable": false
+          "sparse": true,
+          "pretrained_file": "/home/junkyul/conda/glove/glove.wiki.300d.txt.gz",
+          "trainable": false
         }
       }
     },
@@ -47,7 +47,6 @@
     },
     "type_embedder": {
           "type": "embedding",
-//          "num_embeddings": 114,
           "embedding_dim": 200,
           "sparse": false,
           "vocab_namespace": "type_labels"
@@ -87,7 +86,7 @@
     "batch_size": 1000
   },
   "trainer": {
-    "num_epochs": 2,
+    "num_epochs": 1,
     "cuda_device": -1,
 //    "gradient_norm": 1.0,
     "grad_clipping": 5.0, //if norm fails

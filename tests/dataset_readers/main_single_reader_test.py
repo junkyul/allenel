@@ -12,4 +12,3 @@ file_path = "/home/junkyul/conda/allenel/tests/fixtures/train.mens.short1"
 train_data = reader.read(file_path)
 for data in train_data:
     print(data)
-
