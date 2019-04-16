@@ -35,6 +35,11 @@
         }
       }
     },
+    "type_embedding": {
+          "embedding_dim": 200,
+          "sparse": false,
+          "vocab_namespace": "type_labels"
+    },
     "coherence_embedder": {
       "token_embedders": {
         "tokens": {
@@ -44,12 +49,6 @@
           "sparse": true
         }
       }
-    },
-    "type_embedder": {
-          "type": "embedding",
-          "embedding_dim": 200,
-          "sparse": false,
-          "vocab_namespace": "type_labels"
     },
     "left_seq2vec": {
       "type": "lstm",
@@ -83,7 +82,7 @@
   "iterator": {
     "type": "bucket",
     "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
-    "batch_size": 1000
+    "batch_size": 20
   },
   "trainer": {
     "num_epochs": 1,

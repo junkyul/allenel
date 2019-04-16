@@ -13,7 +13,7 @@ sys.argv = [
     "allennlp",  # command name, not used by main
     "predict",
     "/home/junkyul/conda/allenel/tests/fixtures/model.tar.gz",
-    "/home/junkyul/conda/allenel/tests/fixtures/predict_input.json",
+    "/home/junkyul/conda/allenel/tests/fixtures/predict_input_train.json",
     "--include-package", "allenel",
     "--predictor", "el_linker",
 ]
