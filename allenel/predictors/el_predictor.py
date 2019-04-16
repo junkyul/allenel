@@ -28,22 +28,28 @@ class EnityLinknigPredictor(Predictor):
         return_dicts: List[JsonDict] = [ {"entities":[], "scores":[]} for _ in instances]
         for instance_ind, each_instance in enumerate(instances):
             output_dict = self.predict_instance(each_instance)      # return from forward on the instance
-            p_texts = output_dict['scores']
-            candidate_ids = [self._model.vocab.get_token_from_index(index=ind, namespace="wids") for ind in output_dict['candidates']]
 
-            mention_normalized = output_dict['mention_normalized']
-            if mention_normalized in self._dataset_reader.crosswiki:
-                prior_ids = self._dataset_reader.crosswiki[mention_normalized][0]
-                prior_probs = self._dataset_reader.crosswiki[mention_normalized][1]
-                prior_dict = {prior_id: prior_probs[i] if i < len(prior_probs) else 0.0 for i, prior_id in enumerate(prior_ids)}
-                p_post = []
-                for i, cand_id in enumerate(candidate_ids):
-                    tmp_prior = prior_dict[cand_id] if cand_id in prior_dict else 0.0
-                    p_post.append( p_texts[i] + tmp_prior - (p_texts[i] * tmp_prior) )
+            if len(output_dict['candidates']) == 1 and len(output_dict['posteriors']) > 1:
+                posteriors = output_dict['posteriors']
+                scores, entity_inds = (list(t) for t in zip(*sorted(zip(posteriors, range(len(posteriors))))))
+                entities = [self._model.vocab.get_token_from_index(index=ind, namespace="wids") for ind in entity_inds]
             else:
-                p_post = p_texts
+                candidate_ids = [self._model.vocab.get_token_from_index(index=ind, namespace="wids") for ind in output_dict['candidates']]
+                posteriors = output_dict['posteriors']
+                scores, entities = (list(t) for t in zip(*sorted(zip(posteriors, candidate_ids),reverse=True)))
+            # p_texts = output_dict['scores']
+            # mention_normalized = output_dict['mention_normalized']
+            # if mention_normalized in self._dataset_reader.crosswiki:
+            #     prior_ids = self._dataset_reader.crosswiki[mention_normalized][0]
+            #     prior_probs = self._dataset_reader.crosswiki[mention_normalized][1]
+            #     prior_dict = {prior_id: prior_probs[i] if i < len(prior_probs) else 0.0 for i, prior_id in enumerate(prior_ids)}
+            #     posteriors = []
+            #     for i, cand_id in enumerate(candidate_ids):
+            #         tmp_prior = prior_dict[cand_id] if cand_id in prior_dict else 0.0
+            #         posteriors.append( p_texts[i] + tmp_prior - (p_texts[i] * tmp_prior) )
+            # else:
+            #     posteriors = p_texts
 
-            scores, entities = ( list(t) for t in zip (*sorted(zip(p_post, candidate_ids))) )
             return_dicts[instance_ind]["entities"] = entities[:3]
             return_dicts[instance_ind]["scores"] = scores[:3]
             return_dicts[instance_ind]["input_data"] = self.input_data[instance_ind]
@@ -117,7 +123,7 @@ class EnityLinknigPredictor(Predictor):
                 sentence = ' '.join(self.sentences_tokenized[idx])
                 s_nerDicts = self.sentidx2ners[idx]
                 for s, ner in s_nerDicts:
-                    mention = "%s\t%s\t%s" % ("unk_mid", "@@UNKNOWN@@", "unkWT")
+                    mention = "%s\t%s\t%s" % ("unk_mid", "@@<unk_wid>@@", "unkWT")        # unk_wid
                     mention = mention + str('\t') + str(ner['start'])
                     mention = mention + '\t' + str(ner['end'])
                     mention = mention + '\t' + str(ner['tokens'])
