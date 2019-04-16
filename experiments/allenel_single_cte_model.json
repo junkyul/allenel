@@ -45,8 +45,7 @@
         }
       }
     },
-    "type_embedder": {
-          "type": "embedding",
+    "type_embedding": {
           "embedding_dim": 200,
           "sparse": false,
           "vocab_namespace": "type_labels"
@@ -83,7 +82,7 @@
   "iterator": {
     "type": "bucket",
     "sorting_keys": [["candidates", "num_tokens"], ["coherences", "num_tokens"], ["sentence_left", "num_tokens"], ["sentence_right", "num_tokens"]],
-    "batch_size": 64
+    "batch_size": 32
   },
   "trainer": {
     "num_epochs": 5,

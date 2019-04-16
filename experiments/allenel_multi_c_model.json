@@ -15,7 +15,6 @@
   "validation_data_path": "/home/junkyul/conda/neural-el_test/conll2012_dev.txt",
   "test_data_path": "/home/junkyul/conda/neural-el_test/conll2012_test.txt",
   "evaluate_on_test": true,
-//
   "model": {
     "type": "el_model",
     "sentence_embedder": {
