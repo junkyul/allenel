@@ -4,7 +4,7 @@ from overrides import overrides
 from allennlp.models.model import Model
 from allennlp.data import Vocabulary
 
-from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder, FeedForward, TokenEmbedder
+from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder, FeedForward, TokenEmbedder, Embedding
 from allennlp.nn import InitializerApplicator, RegularizerApplicator
 from allennlp.training.metrics import CategoricalAccuracy
 from allennlp.nn.util import get_text_field_mask
@@ -20,7 +20,7 @@ class EnityLinknigModel(Model):
     def __init__(self,
                  vocab: Vocabulary,
                  sentence_embedder: TextFieldEmbedder,
-                 entity_embedder: TextFieldEmbedder,
+                 entity_embedder: TextFieldEmbedder,       # List pads -1 that results in index error?
                  coherence_embedder: TextFieldEmbedder,
                  encoded_dims: int = 200,
                  word_embedding_dropout: float = 0.4,
@@ -29,7 +29,7 @@ class EnityLinknigModel(Model):
                  right_seq2vec: Seq2VecEncoder = None,
                  ff_seq2vecs : FeedForward = None,
                  ff_context: FeedForward = None,
-                 type_embedder: TokenEmbedder = None,
+                 type_embedding: Embedding = None,          # dense one-hot encoded vector input OK!
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None,
                  model_modules = "C"        # by default C model C, CT, CE, CTE,
@@ -54,7 +54,7 @@ class EnityLinknigModel(Model):
         self.entity_embedder = entity_embedder
 
         # type labels
-        self.type_embedder = type_embedder
+        self.type_embedder = type_embedding
 
         # loss
         self.loss_text = torch.nn.CrossEntropyLoss()
@@ -62,7 +62,7 @@ class EnityLinknigModel(Model):
         self.loss_etype = torch.nn.BCEWithLogitsLoss() if "E" in model_modules and self.type_embedder else None
         self.loss_mtype = torch.nn.BCEWithLogitsLoss() if "T" in model_modules and self.type_embedder else None
 
-        self.predict_max = torch.nn.Softmax()
+        self.predict_max = torch.nn.Softmax(dim=1)
 
         self.metrics = {
             "accuracy": CategoricalAccuracy(),
@@ -83,9 +83,10 @@ class EnityLinknigModel(Model):
                 sentence_left: Dict[str, torch.LongTensor],  # [B, sent len, 300]
                 sentence_right: Dict[str, torch.LongTensor],
                 mention_normalized: List[str],
-                types: Dict[str, torch.LongTensor],
+                types: torch.LongTensor, #Dict[str, torch.LongTensor],
                 coherences: Dict[str, torch.LongTensor],
-                candidates: Dict[str, torch.LongTensor], #= None,       # todo compare all entities
+                candidates: Dict[str, torch.LongTensor], #= None,
+                candidate_priors: torch.FloatTensor,        # use for both prediction and training
                 targets: torch.LongTensor
                 )-> Dict[str, torch.Tensor]:
         # local context
@@ -113,15 +114,27 @@ class EnityLinknigModel(Model):
         v_local = self.ff_context(v_local)  #[B, 200]
         v_local = v_local.view(v_local.size()[0], 1, -1)        # [B, 1, 200]
 
+        # prediction
         if targets[0] == -1:
             with torch.no_grad():
-                candidates_embedded = self.entity_embedder(candidates)      # at least unknown returned
+                no_prior = False
+                if candidates['tokens'].shape[1] == 1 and candidate_priors[0][0] == 0.0:  # only 1 candidate with zero prob
+                    # candidates_embedded = self.entity_embedder.weight           # take all entity vecotrs
+                    candidates_embedded = self.entity_embedder._token_embedders["tokens"].weight
+                    no_prior = True
+                else:
+                    candidates_embedded = self.entity_embedder(candidates)      # at least unknown returned
                 scores_text = torch.matmul(candidates_embedded, v_local.view(v_local.shape[0], -1, 1))
-                scores_text = torch.squeeze(scores_text)    # [1, C] or [C, ]
-                scores_text = self.predict_max(scores_text)
-                scores_text = scores_text.view(v_local.shape[0], -1)
-                loss = scores_text
-
+                # scores_text = torch.squeeze(scores_text)    # [1, C]
+                prob_text = self.predict_max(scores_text)
+                prob_text = prob_text.view(v_local.shape[0], -1)
+                if no_prior:
+                    posteriors = prob_text
+                    loss = posteriors
+                else:
+                    posteriors = prob_text + candidate_priors - (prob_text * candidate_priors)
+                    loss = posteriors
+        # training
         else:
             # entity sampled by strong candidates (no negative sampling)
             candidates_embedded = self.entity_embedder(candidates)    # first element is true wiki id
@@ -143,12 +156,17 @@ class EnityLinknigModel(Model):
 
             with torch.no_grad():
                 for metric in self.metrics.values():
-                    metric(scores_text, targets)
+                    prob_text = self.predict_max(scores_text)   #[B, C]       # prior prob
+                    posteriors = prob_text + candidate_priors - (prob_text * candidate_priors)
+                    metric(posteriors, targets)
 
         output_dict = {'loss': loss,
-                       "scores": scores_text,
+                       # "scores": scores_text,
                        "candidates": candidates['tokens'],
-                       "mention_normalized": mention_normalized}
+                       # "candidate_priors": candidate_priors,
+                       "posteriors": posteriors,
+                       # "mention_normalized": mention_normalized
+                       }
         return output_dict
 
     @overrides
