@@ -9,11 +9,12 @@ from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 
 from allennlp.data import Token
 from allennlp.data.instance import Instance
-from allennlp.data.fields import LabelField, TextField, MultiLabelField, MetadataField
+from allennlp.data.fields import LabelField, TextField, MultiLabelField, MetadataField, ListField, ArrayField
 
 from allennlp.common.util import START_SYMBOL, END_SYMBOL
 from allenel.dataset_readers.el_multiproc_reader import EnityLinknigDatasetMultiReader
 
+import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
@@ -50,13 +51,6 @@ class EnityLinknigDatasetReader(DatasetReader):
     def _read(self, file_path):
         with open(file_path) as data_file:
             for line in data_file:
-                # line = line.strip("\n")
-                # if not line: continue
-                # temp = line.split("\t") # separated by Tabs
-                # wiki_id = temp[1]
-                # st_idx, et_idx, mention_surface, mention_sentence= temp[3], temp[4], temp[5], temp[6]
-                # free_types = temp[7] if len(temp) > 7 else "@@UNKNOWN@@"
-                # coherence_mentions = temp[8] if len(temp) > 8 else "@@UNKNOWN@@"
                 yield self.text_to_instance(*self.process_line(line))
 
     def process_line(self, line):
@@ -104,30 +98,47 @@ class EnityLinknigDatasetReader(DatasetReader):
         coherence_tokenized = self.coherence_tokenizer.tokenize(coherence_mentions)
         coherences_field = TextField(coherence_tokenized, self.coherence_indexers)
 
-        if wiki_id == "@@UNKNOWN@@":    # because it is the test case
+        if wiki_id == "@@<unk_wid>@@":
+            # because it is the test case and it packed by predictor class (demo) @@UNKNOWN@@ could be passed?
             if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
                 candidates = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0]
+                candidiate_probs = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][1]
+                candidate_prob_field = ArrayField(np.array(candidiate_probs))
                 candidates_tokenized = [Token(t) for t in candidates]
                 candidates_field = TextField(candidates_tokenized, self.wid_indexers)
-                # candidate_id_meta = MetadataField(candidates)
+                # candidate_labels = [LabelField(label=t, label_namespace="wids") for t in candidates]
+                # candidates_field = ListField(candidate_labels)
+
             else:
+                candidate_prob_field = ArrayField( np.array([0.0]))
+                # candidates_field = ListField([ LabelField(label="@@UNKNOWN@@", namespace="wids")])
                 candidates_tokenized = [Token("@@UNKNOWN@@")]
-                # todo pass all or None; now if candidate is empty result is unknown
                 candidates_field = TextField(candidates_tokenized, self.wid_indexers)
-                # candidate_id_meta = MetadataField(["@@UNKNOWN@@"])
-            target_field = LabelField("label").empty_field()
+
+            target_field = LabelField("label").empty_field()        # target_field.label is -1
         else:
             candidates = [wiki_id]
             if mention_surface_normalized in EnityLinknigDatasetReader.crosswiki:
                 prior_wiki_ids = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][0] # crosswiki ( [candidates], [probs] )
+                prior_wiki_probs = EnityLinknigDatasetReader.crosswiki[mention_surface_normalized][1]
                 if wiki_id in prior_wiki_ids:
-                    prior_wiki_ids.remove(wiki_id)
-                candidates += prior_wiki_ids # prior prob should read by cwiki[mention_norm][0]->[1] index of cand id -> prior prob
+                    wiki_id_ind = prior_wiki_ids.index(wiki_id)
+                    candidates = [wiki_id] + prior_wiki_ids[:wiki_id_ind] + prior_wiki_ids[wiki_id_ind+1:]
+                    candidiate_probs = [prior_wiki_probs[wiki_id_ind]] + prior_wiki_probs[:wiki_id_ind] + prior_wiki_probs[wiki_id_ind+1:]
+                else:
+                    candidates = [wiki_id] + prior_wiki_ids
+                    candidiate_probs = [0.0] + prior_wiki_probs
+
             if len(candidates) == 1:
                 candidates += ["@@UNKNOWN@@"]
+                candidiate_probs = [1.0, 0.0]
+
+            candidate_prob_field = ArrayField(np.array(candidiate_probs))
             candidates_tokenized = [Token(t) for t in candidates]
             candidates_field = TextField(candidates_tokenized, self.wid_indexers)
-            # candidate_id_meta = MetadataField(candidates)
+            # candidate_labels = [LabelField(label=t, label_namespace="wids") for t in candidates]
+            # candidates_field = ListField(candidate_labels)
+
             target_field = LabelField(label=0, label_namespace="label", skip_indexing=True)
 
         fields = {
@@ -138,6 +149,7 @@ class EnityLinknigDatasetReader(DatasetReader):
             "types": types_field,
             "coherences": coherences_field,
             "candidates": candidates_field,
+            "candidate_priors": candidate_prob_field,
             # "candidate_id_meta": candidate_id_meta,     # possible to get id from indexer? should be...
             "targets": target_field,
         }
